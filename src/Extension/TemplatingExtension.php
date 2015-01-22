@@ -32,8 +32,8 @@ class TemplatingExtension extends Extension implements CompilerAwareExtensionInt
     public function load(array $config, ContainerBuilder $container)
     {
         $container->register('templating', 'Symfony\Component\Templating\DelegatingEngine');
-
         $container->register('templating.loader', 'Symfony\Component\Templating\Loader\ChainLoader');
+        $container->register('templating.template_name_parser', 'Symfony\Component\Templating\TemplateNameParser');
     }
 
     /**
