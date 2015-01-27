@@ -70,10 +70,21 @@ class TemplatingExtension extends Extension implements CompilerAwareExtensionInt
 
             $container->register('templating.engine.php.loader', 'Symfony\Component\Templating\Loader\FilesystemLoader')
                 ->setPublic(false)
-                ->addArgument('%php.template_dir%');
+                ->addArgument('%php.template_dir%/%%name%%');
+            $container->register('templating.engine.php.helper.slots', 'Symfony\Component\Templating\Helper\SlotsHelper')
+                ->setPublic(false);
+            $container->register('templating.engine.php.helper.assets', 'Nice\Templating\Helper\AssetsHelper')
+                ->addArgument(new Reference('service_container'))
+                ->setPublic(false);
+            $container->register('templating.engine.php.helper.router', 'Nice\Templating\Helper\RouterHelper')
+                ->addArgument(new Reference('service_container'))
+                ->setPublic(false);
             $container->register('templating.engine.php', 'Symfony\Component\Templating\PhpEngine')
                 ->addArgument(new Reference('templating.template_name_parser'))
                 ->addArgument(new Reference('templating.engine.php.loader'))
+                ->addMethodCall('set', array(new Reference('templating.engine.php.helper.slots')))
+                ->addMethodCall('set', array(new Reference('templating.engine.php.helper.assets')))
+                ->addMethodCall('set', array(new Reference('templating.engine.php.helper.router')))
                 ->addTag('templating.engine');
         }
     }
