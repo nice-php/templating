@@ -15,6 +15,7 @@ use Nice\DependencyInjection\CompilerAwareExtensionInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Sets up Templating services
@@ -22,18 +23,59 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 class TemplatingExtension extends Extension implements CompilerAwareExtensionInterface
 {
     /**
-     * Loads a specific configuration.
+     * @var array
+     */
+    private $options = array();
+
+    /**
+     * Constructor
+     *
+     * @param array $options
+     */
+    public function __construct(array $options = array())
+    {
+        $this->options = $options;
+    }
+
+    /**
+     * Returns extension configuration
      *
      * @param array            $config    An array of configuration values
      * @param ContainerBuilder $container A ContainerBuilder instance
      *
-     * @throws \InvalidArgumentException When provided tag is not defined in this extension
+     * @return TemplatingConfiguration
      */
-    public function load(array $config, ContainerBuilder $container)
+    public function getConfiguration(array $config, ContainerBuilder $container)
     {
+        return new TemplatingConfiguration();
+    }
+
+    /**
+     * Loads a specific configuration
+     *
+     * @param array            $configs    An array of configuration values
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     */
+    public function load(array $configs, ContainerBuilder $container)
+    {
+        $configs[] = $this->options;
+        $configuration = $this->getConfiguration($configs, $container);
+        $config = $this->processConfiguration($configuration, $configs);
+
         $container->register('templating', 'Symfony\Component\Templating\DelegatingEngine');
-        $container->register('templating.loader', 'Symfony\Component\Templating\Loader\ChainLoader');
         $container->register('templating.template_name_parser', 'Symfony\Component\Templating\TemplateNameParser');
+
+        if (true === $config['enable_php_engine']) {
+            $container->setParameter('php.template_dir', $config['template_dir']);
+
+            $container->register('templating.engine.php.loader', 'Symfony\Component\Templating\Loader\FilesystemLoader')
+                ->setPublic(false)
+                ->addArgument('%php.template_dir%');
+            $container->register('templating.engine.php', 'Symfony\Component\Templating\PhpEngine')
+                ->addArgument(new Reference('templating.template_name_parser'))
+                ->addArgument(new Reference('templating.engine.php.loader'))
+                ->addTag('templating.engine');
+        }
     }
 
     /**
@@ -44,8 +86,7 @@ class TemplatingExtension extends Extension implements CompilerAwareExtensionInt
     public function getCompilerPasses()
     {
         return array(
-            new RegisterTemplatingEnginesPass(),
-            new RegisterTemplatingLoadersPass()
+            new RegisterTemplatingEnginesPass()
         );
     }
 }
