@@ -10,7 +10,6 @@
 namespace Nice\Extension;
 
 use Nice\DependencyInjection\Compiler\RegisterTemplatingEnginesPass;
-use Nice\DependencyInjection\Compiler\RegisterTemplatingLoadersPass;
 use Nice\DependencyInjection\CompilerAwareExtensionInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -71,14 +70,11 @@ class TemplatingExtension extends Extension implements CompilerAwareExtensionInt
             $container->register('templating.engine.php.loader', 'Symfony\Component\Templating\Loader\FilesystemLoader')
                 ->setPublic(false)
                 ->addArgument('%php.template_dir%/%%name%%');
-            $container->register('templating.engine.php.helper.slots', 'Symfony\Component\Templating\Helper\SlotsHelper')
-                ->setPublic(false);
+            $container->register('templating.engine.php.helper.slots', 'Symfony\Component\Templating\Helper\SlotsHelper');
             $container->register('templating.engine.php.helper.assets', 'Nice\Templating\Helper\AssetsHelper')
-                ->addArgument(new Reference('service_container'))
-                ->setPublic(false);
+                ->addArgument(new Reference('service_container'));
             $container->register('templating.engine.php.helper.router', 'Nice\Templating\Helper\RouterHelper')
-                ->addArgument(new Reference('service_container'))
-                ->setPublic(false);
+                ->addArgument(new Reference('service_container'));
             $container->register('templating.engine.php', 'Symfony\Component\Templating\PhpEngine')
                 ->addArgument(new Reference('templating.template_name_parser'))
                 ->addArgument(new Reference('templating.engine.php.loader'))
