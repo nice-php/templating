@@ -38,7 +38,7 @@ class AssetsHelper extends Helper
      */
     public function getUrl($path)
     {
-        if (false !== strpos($path, '://') || 0 === strpos($path, '//')) {
+        if (str_contains($path, '://') || str_starts_with($path, '//')) {
             return $path;
         }
 
@@ -46,7 +46,7 @@ class AssetsHelper extends Helper
             return $path;
         }
 
-        if ('/' !== substr($path, 0, 1)) {
+        if (!str_starts_with($path, '/')) {
             $path = '/' . $path;
         }
 
